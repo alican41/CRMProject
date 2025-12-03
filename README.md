@@ -46,7 +46,7 @@ E-Ticaret firması için müşteri ve sipariş yönetim sistemi.
 ### Adım 1: Projeyi Klonlayın
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/alican41/CRMProject
 cd mini-crm
 ```
 
@@ -243,4 +243,4 @@ MIT License
 
 ## 👥 İletişim
 
-Proje Linki: [https://github.com/yourusername/mini-crm](https://github.com/yourusername/mini-crm)
+Proje Linki: https://github.com/alican41/CRMProject
