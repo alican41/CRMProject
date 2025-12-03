@@ -1,0 +1,51 @@
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment Variables
+.env
+.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test Coverage
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+
+# Database
+*.sqlite
+*.db
+
+# Temporary files
+*.tmp
+temp/
+.cache/
+
+# Data files (development only)
+data/*.csv
+data/*.xlsx
+data/*.json
+!data/.gitkeep
+
+# Test database
+mini_crm_test
+
