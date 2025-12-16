@@ -32,9 +32,20 @@ if (process.env.NODE_ENV === 'development') {
 // Modeller
 db.Customer = require('./customer')(sequelize, Sequelize.DataTypes);
 db.Order = require('./order')(sequelize, Sequelize.DataTypes);
+db.OrderItem = require('./orderItem')(sequelize, Sequelize.DataTypes);
 
-// İlişkiler (tam bitmemiş)
+// İlişkiler
 db.Customer.hasMany(db.Order, { foreignKey: 'customerId' });
 db.Order.belongsTo(db.Customer, { foreignKey: 'customerId' });
+
+db.Order.hasMany(db.OrderItem, {
+  foreignKey: 'orderId',
+  as: 'items'
+});
+
+db.OrderItem.belongsTo(db.Order, {
+  foreignKey: 'orderId',
+  as: 'order'
+});
 
 module.exports = db;

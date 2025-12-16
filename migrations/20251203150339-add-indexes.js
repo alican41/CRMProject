@@ -32,6 +32,16 @@ module.exports = {
     await queryInterface.addIndex('orders', ['created_at'], {
       name: 'orders_created_at_idx'
     });
+
+    // ✅ YENİ: OrderItem order_id index (foreign key + JOIN için)
+    await queryInterface.addIndex('order_items', ['order_id'], {
+      name: 'order_items_order_id_idx'
+    });
+
+    // ✅ YENİ: OrderItem product_name index (arama için)
+    await queryInterface.addIndex('order_items', ['product_name'], {
+      name: 'order_items_product_name_idx'
+    });
   },
 
   down: async (queryInterface, Sequelize) => {
@@ -41,5 +51,9 @@ module.exports = {
     await queryInterface.removeIndex('orders', 'orders_customer_id_idx');
     await queryInterface.removeIndex('orders', 'orders_status_idx');
     await queryInterface.removeIndex('orders', 'orders_created_at_idx');
+    
+    // ✅ YENİ: OrderItem index'lerini kaldır
+    await queryInterface.removeIndex('order_items', 'order_items_order_id_idx');
+    await queryInterface.removeIndex('order_items', 'order_items_product_name_idx');
   }
 };

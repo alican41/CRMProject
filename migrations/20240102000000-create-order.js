@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Not: status alanı enum düşünülmüş ama sonra vazgeçilmiş gibi.
- * Ayrıca customerId için foreign key eksik.
- */
 
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -32,7 +28,6 @@ module.exports = {
         type: Sequelize.DECIMAL(10, 2),
         allowNull: true
       },
-      // TODO: eski yazılımcı order_items tablosu planlamış ama yok
       created_at: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW
