@@ -5,6 +5,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 const customersRouter = require('./routes/customers');
 const ordersRouter = require('./routes/orders');
+const productsRouter = require('./routes/products');
 const traceIdMiddleware = require('./middlewares/traceId');
 const requestLogger = require('./middlewares/requestLogger');
 const cors = require('cors');
@@ -48,6 +49,7 @@ app.get('/health', async (req, res) => {
 
 app.use('/api/customers', customersRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/products', productsRouter);
 
 // CORS configuration
 const corsOptions = {

@@ -12,6 +12,12 @@ module.exports = (sequelize) => {
       allowNull: false,
       field: 'order_id'
     },
+    productId: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // Opsiyonel: Manuel ürün adı ile de sipariş verilebilir
+      field: 'product_id',
+      comment: 'Ürün tablosuna referans (opsiyonel)'
+    },
     productName: {
       type: DataTypes.STRING(100),
       allowNull: false,

@@ -50,6 +50,11 @@ module.exports = {
     await queryInterface.addIndex('order_items', ['order_id'], {
       name: 'order_items_order_id_idx'
     });
+
+    // Product name için arama index'i
+    await queryInterface.addIndex('order_items', ['product_name'], {
+      name: 'order_items_product_name_idx'
+    });
   },
 
   async down(queryInterface) {

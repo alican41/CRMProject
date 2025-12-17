@@ -2,209 +2,178 @@ const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
 const { Customer, sequelize } = require('../src/models');
-const logger = require('../src/lib/logger');
 const {
   cleanPhone,
   cleanEmail,
   cleanName,
   cleanAddress,
-  normalizeForComparison
+  generateCompositeKey,
+  toEnglishCharacters
 } = require('../src/utils/dataCleaners');
 
-// Sonuç raporlama
+// Konfigürasyon
+const CONFIG = {
+  BATCH_SIZE: 100
+};
+
 const report = {
   total: 0,
   success: 0,
   failed: 0,
   duplicates: 0,
-  errors: []
+  warnings: []
 };
 
-/**
- * CSV dosyasını oku
- */
-function readCSV(filePath) {
-  const workbook = xlsx.readFile(filePath);
-  const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
-  return xlsx.utils.sheet_to_json(worksheet);
-}
-
-/**
- * Duplicate kontrolü yap
- */
-async function isDuplicate(firstName, lastName, phone, email, existingCustomers) {
-  const normalizedFirst = normalizeForComparison(firstName);
-  const normalizedLast = normalizeForComparison(lastName);
-  const normalizedPhone = phone ? phone.replace(/\D/g, '') : null;
-  
-  // Bellekteki veriler ile kontrol
-  const memoryDuplicate = existingCustomers.find(c => {
-    const samePhone = normalizedPhone && c.phone && 
-                     c.phone.replace(/\D/g, '') === normalizedPhone;
-    const sameName = normalizeForComparison(c.firstName) === normalizedFirst &&
-                     normalizeForComparison(c.lastName) === normalizedLast;
-    return samePhone || sameName;
-  });
-  
-  if (memoryDuplicate) {
-    return true;
-  }
-  
-  // Veritabanındaki veriler ile kontrol
-  if (normalizedPhone) {
-    const dbCustomer = await Customer.findOne({
-      where: sequelize.where(
-        sequelize.fn('REPLACE', 
-          sequelize.fn('REPLACE',
-            sequelize.fn('REPLACE', sequelize.col('phone'), ' ', ''),
-          '-', ''),
-        '(', ''),
-        normalizedPhone
-      )
-    });
-    if (dbCustomer) return true;
-  }
-  
-  return false;
-}
-
-/**
- * Müşteriyi işle ve kaydet
- */
-async function processCustomer(row, index, existingCustomers) {
-  const rowNum = index + 2; // Excel'de 1. satır başlık, 2. satır ilk veri
-  
+function readFile(filePath) {
   try {
-    // Veri temizleme
-    const firstName = cleanName(row.Ad);
-    const lastName = cleanName(row.Soyad);
-    const phone = cleanPhone(row.Telefon);
-    const email = cleanEmail(row.Email);
-    const address = cleanAddress(row.Adres);
-    
-    // İsim zorunlu
-    if (!firstName) {
-      report.errors.push({
-        row: rowNum,
-        reason: 'İsim zorunludur',
-        data: row
-      });
-      report.failed++;
-      return null;
-    }
-    
-    // Duplicate kontrolü
-    if (await isDuplicate(firstName, lastName, phone, email, existingCustomers)) {
-      logger.info(`Duplicate found at row ${rowNum}`, { firstName, lastName, phone });
-      report.duplicates++;
-      return null;
-    }
-    
-    // Müşteri oluştur
-    const customer = await Customer.create({
-      firstName,
-      lastName,
-      phone,
-      email,
-      address,
-      isActive: true
-    });
-    
-    logger.info(`Customer created from row ${rowNum}`, { 
-      id: customer.id, 
-      firstName, 
-      lastName 
-    });
-    
-    report.success++;
-    return customer;
-    
+    // Dosyayı buffer olarak oku ve UTF-8 olarak parse etmeye zorla
+    const fileBuffer = fs.readFileSync(filePath);
+    const workbook = xlsx.read(fileBuffer, { type: 'buffer', codepage: 65001 });
+    const sheetName = workbook.SheetNames[0];
+    return xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
   } catch (error) {
-    report.errors.push({
-      row: rowNum,
-      reason: error.message,
-      data: row
-    });
-    report.failed++;
-    logger.error(`Failed to process row ${rowNum}`, { error: error.message, row });
-    return null;
+    throw new Error(`Dosya okunamadı: ${error.message}`);
   }
 }
 
 /**
- * Ana ETL fonksiyonu
+ * Veritabanındaki mevcut kayıtları yükle
+ * Not: Veritabanındaki veriler zaten İngilizce karakterli olacağı için (yeni sisteme göre),
+ * doğrudan key oluşturabiliriz. Ancak eski veriler Türkçeyse onları da İngilizceymiş gibi key'e çeviririz.
  */
-async function importCustomers() {
-  const filePath = path.join(__dirname, '..', 'data', 'customers.csv');
-  
-  logger.info('Starting ETL process', { filePath });
-  
+async function loadExistingRecords() {
   try {
-    // Veritabanı bağlantısını test et
+    const customers = await Customer.findAll({
+      attributes: ['firstName', 'lastName', 'phone'],
+      raw: true
+    });
+    
+    const recordSet = new Set();
+    
+    customers.forEach(c => {
+      // Veritabanından gelen veriyi de temizleyiciden geçiriyoruz ki
+      // format (Büyük/Küçük harf vs.) garanti olsun.
+      const f = cleanName(c.firstName);
+      const l = cleanName(c.lastName);
+      const p = cleanPhone(c.phone); // Format garantisi
+      
+      const key = generateCompositeKey(f, l, p);
+      recordSet.add(key);
+    });
+    
+    return recordSet;
+  } catch (error) {
+    console.error("Tablo boş veya okunamadı, devam ediliyor.");
+    return new Set();
+  }
+}
+
+async function importCustomers(options = {}) {
+  const filePath = options.filePath || path.join(__dirname, '..', 'data', 'customers.csv');
+  
+  console.log('🚀 ETL İşlemi Başlıyor (Tamamen İngilizce Karakter Formatı)...');
+
+  try {
     await sequelize.authenticate();
-    logger.info('Database connection OK');
     
-    // CSV dosyasını oku
-    const rows = readCSV(filePath);
+    // 1. Dosyayı Oku
+    let rows = readFile(filePath);
     report.total = rows.length;
+    console.log(`📄 Toplam ${rows.length} satır okundu.`);
+
+    // 2. Mevcut kayıtları hafızaya al
+    const existingRecords = await loadExistingRecords();
+    console.log(`💾 Veritabanında ${existingRecords.size} kayıt bulundu.`);
+
+    const customersToInsert = [];
     
-    logger.info(`Found ${rows.length} rows in CSV`);
-    
-    // İşlenen müşterileri sakla (duplicate kontrolü için)
-    const processedCustomers = [];
-    
-    // Her satırı işle
+    // 3. Satır satır işle
     for (let i = 0; i < rows.length; i++) {
-      const customer = await processCustomer(rows[i], i, processedCustomers);
-      if (customer) {
-        processedCustomers.push(customer);
+      const row = rows[i];
+      const rowNum = i + 2;
+
+      // --- VERİ TEMİZLEME VE DÖNÜŞTÜRME ---
+      // Artık cleanName fonksiyonu "Öztürk"ü "Ozturk" yapar.
+      // Veritabanına bu dönüştürülmüş hali kaydedilecek.
+      let firstName = cleanName(row.Ad); 
+      let lastName = cleanName(row.Soyad);
+      const phone = cleanPhone(row.Telefon);
+      const email = cleanEmail(row.Email);
+      const address = cleanAddress(row.Adres);
+      const notes = row.Not ? toEnglishCharacters(row.Not.toString().trim()) : null;
+
+      // Zorunlu alan doldurma
+      if (!firstName) firstName = "Bilinmeyen";
+      if (!lastName) lastName = "-";
+
+      // 4. DUPLICATE KONTROLÜ
+      // "Omer" + "Celik" + "+905..." kombinasyonu kontrol edilir.
+      const compositeKey = generateCompositeKey(firstName, lastName, phone);
+
+      if (existingRecords.has(compositeKey)) {
+        report.duplicates++;
+        report.warnings.push(`Satır ${rowNum}: [${firstName} ${lastName} - ${phone}] zaten mevcut. Atlandı.`);
+      } else {
+        // 5. LİSTEYE EKLE (İngilizce Karakterli Haliyle)
+        customersToInsert.push({
+          firstName, // Örn: Omer (Dönüştürülmüş hali)
+          lastName,  // Örn: Celik (Dönüştürülmüş hali)
+          phone: phone || null,
+          email: email || null,
+          address: address || null,
+          notes: notes || null,
+          isActive: true
+        });
+
+        // Set'i güncelle
+        existingRecords.add(compositeKey);
       }
     }
-    
-    // Rapor oluştur
-    console.log('\n' + '='.repeat(60));
-    console.log('ETL PROCESS COMPLETED');
-    console.log('='.repeat(60));
-    console.log(`Total rows processed: ${report.total}`);
-    console.log(`✅ Successfully imported: ${report.success}`);
-    console.log(`⚠️  Duplicates skipped: ${report.duplicates}`);
-    console.log(`❌ Failed: ${report.failed}`);
-    console.log('='.repeat(60));
-    
-    // Hata detayları
-    if (report.errors.length > 0) {
-      console.log('\nERROR DETAILS:');
-      report.errors.forEach(err => {
-        console.log(`Row ${err.row}: ${err.reason}`);
-        console.log(`  Data:`, err.data);
-      });
+
+    // 6. Veritabanına Kaydet
+    if (customersToInsert.length > 0) {
+      console.log(`📦 ${customersToInsert.length} yeni müşteri (normalize edilmiş) kaydediliyor...`);
+      
+      const batches = [];
+      while (customersToInsert.length > 0) {
+        batches.push(customersToInsert.splice(0, CONFIG.BATCH_SIZE));
+      }
+
+      for (const batch of batches) {
+        try {
+          // validate: false ile hız kazanalım, veriyi zaten temizledik
+          await Customer.bulkCreate(batch, { validate: false });
+          report.success += batch.length;
+          process.stdout.write('.');
+        } catch (err) {
+          console.error("\n❌ Batch hatası:", err.message);
+          report.failed += batch.length;
+        }
+      }
+      console.log("\n");
+    } else {
+      console.log("⚠️ Eklenecek yeni kayıt yok.");
     }
-    
-    // JSON rapor kaydet
-    const reportPath = path.join(__dirname, '..', 'data', 'import-report.json');
-    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-    logger.info('Report saved', { reportPath });
-    
+
+    // Rapor
+    console.log('\n========================================');
+    console.log(`✅ Başarılı: ${report.success}`);
+    console.log(`⚠️  Duplicate: ${report.duplicates}`);
+    console.log(`❌ Hata: ${report.failed}`);
+    console.log('========================================\n');
+
+    if (report.warnings.length > 0) {
+      console.log("Atlanan Kayıtlar (İlk 5):");
+      report.warnings.slice(0, 5).forEach(w => console.log(w));
+    }
+
   } catch (error) {
-    logger.error('ETL process failed', { error: error.message });
-    throw error;
-  } finally {
-    await sequelize.close();
+    console.error("Kritik Hata:", error);
   }
 }
 
-// Script'i çalıştır
 if (require.main === module) {
-  importCustomers()
-    .then(() => {
-      console.log('\n✅ ETL process finished successfully');
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('\n❌ ETL process failed:', error);
-      process.exit(1);
-    });
+  importCustomers();
 }
 
 module.exports = { importCustomers };

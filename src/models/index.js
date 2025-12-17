@@ -33,6 +33,7 @@ if (process.env.NODE_ENV === 'development') {
 db.Customer = require('./customer')(sequelize, Sequelize.DataTypes);
 db.Order = require('./order')(sequelize, Sequelize.DataTypes);
 db.OrderItem = require('./orderItem')(sequelize, Sequelize.DataTypes);
+db.Product = require('./product')(sequelize, Sequelize.DataTypes);
 
 // İlişkiler
 db.Customer.hasMany(db.Order, { foreignKey: 'customerId' });
@@ -46,6 +47,17 @@ db.Order.hasMany(db.OrderItem, {
 db.OrderItem.belongsTo(db.Order, {
   foreignKey: 'orderId',
   as: 'order'
+});
+
+// Product - OrderItem ilişkisi
+db.Product.hasMany(db.OrderItem, {
+  foreignKey: 'productId',
+  as: 'orderItems'
+});
+
+db.OrderItem.belongsTo(db.Product, {
+  foreignKey: 'productId',
+  as: 'product'
 });
 
 module.exports = db;
