@@ -48,7 +48,7 @@ E-Ticaret firması için müşteri ve sipariş yönetim sistemi.
 
 ```bash
 git clone https://github.com/alican41/CRMProject
-cd mini-crm
+cd CRMProject
 ```
 
 ### Adım 2: Bağımlılıkları Yükleyin
