@@ -15,8 +15,9 @@ E-Ticaret firması için müşteri ve sipariş yönetim sistemi.
 
 ## ✨ Özellikler
 
-- ✅ **Müşteri Yönetimi:** CRUD operasyonları
-- ✅ **Sipariş Yönetimi:** Sipariş oluşturma, güncelleme, takip
+- ✅ **Müşteri Yönetimi:** CRUD operasyonları, Mükerrer kayıt kontrolü
+- ✅ **Sipariş Yönetimi:** Sipariş oluşturma, güncelleme, takip, Misafir Siparişi (Guest Checkout)
+- ✅ **Ürün Yönetimi:** Stok takibi (Opsiyonel), Çoklu Fiyat desteği
 - ✅ **Validation:** express-validator ile veri doğrulama
 - ✅ **Loglama:** Winston ile profesyonel loglama (Trace ID desteği)
 - ✅ **ETL:** Excel/CSV'den veri aktarımı ve temizleme

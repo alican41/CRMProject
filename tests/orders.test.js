@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/app');
-const { Customer, Order } = require('../src/models');
+const { Customer, Order, Product } = require('../src/models');
 
 describe('Orders API', () => {
   let customer;
@@ -11,7 +11,8 @@ describe('Orders API', () => {
       firstName: 'Test',
       lastName: 'Customer',
       email: 'test@example.com',
-      phone: '05321112233'
+      phone: '05321112233',
+      address: 'Test Adresi, İstanbul' // Varsayılan olarak adresli müşteri oluştur
     });
   });
 
@@ -90,6 +91,28 @@ describe('Orders API', () => {
       expect(res.body.message).toContain('bulunamadı');
     });
 
+    test('should fail when customer has no address', async () => {
+      // Adresi olmayan bir müşteri oluştur
+      const noAddressCustomer = await Customer.create({
+        firstName: 'No Address',
+        lastName: 'User',
+        email: 'noaddress@test.com',
+        phone: '05551112233'
+        // address alanı boş bırakıldı
+      });
+
+      const res = await request(app)
+        .post('/api/orders')
+        .send({ 
+          customerId: noAddressCustomer.id,
+          status: 'pending',
+          totalAmount: 100
+        });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toBe('Sipariş oluşturabilmek için müşterinin adres bilgisi kayıtlı olmalıdır.');
+    });
+
     test('should fail with invalid status', async () => {
       const res = await request(app)
         .post('/api/orders')
@@ -99,6 +122,56 @@ describe('Orders API', () => {
         });
 
       expect(res.statusCode).toBe(400);
+    });
+
+    test('should create order with guest customer', async () => {
+      const guestOrderData = {
+        guestCustomer: {
+          firstName: 'Misafir',
+          lastName: 'Kullanıcı',
+          email: 'guest@example.com',
+          phone: '05559998877',
+          address: 'Misafir Adresi, Ankara'
+        },
+        items: [
+          {
+            productName: 'Hızlı Ürün',
+            quantity: 1,
+            unitPrice: 50
+          }
+        ]
+      };
+
+      const res = await request(app)
+        .post('/api/orders')
+        .send(guestOrderData);
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body.Customer).toBeDefined();
+      expect(res.body.Customer.email).toBe('guest@example.com');
+      
+      // Müşterinin gerçekten oluştuğunu kontrol et
+      const createdCustomer = await Customer.findOne({ where: { email: 'guest@example.com' } });
+      expect(createdCustomer).toBeDefined();
+    });
+
+    test('should fail guest order without address', async () => {
+      const guestOrderData = {
+        guestCustomer: {
+          firstName: 'Adressiz',
+          lastName: 'Misafir',
+          email: 'noaddress_guest@example.com'
+          // address yok
+        },
+        items: []
+      };
+
+      const res = await request(app)
+        .post('/api/orders')
+        .send(guestOrderData);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toContain('adres bilgisi kayıtlı olmalıdır');
     });
 
     test('should fail with negative amount', async () => {

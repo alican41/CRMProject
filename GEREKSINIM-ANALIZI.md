@@ -21,6 +21,21 @@ E-ticaret firmasının müşteri ve sipariş bilgilerini Excel/WhatsApp yerine m
 - ✅ Test coverage %75+ seviyesine çıkarıldı
 - ✅ ETL sistemi geliştirildi
 
+### 1.3 Belirsizlikler ve Netleştirme Soruları (Soru Listesi)
+
+Proje sürecinde müşteri (hoca) tarafından iletilen belirsiz talepler için hazırlanan soru listesi ve alınan kararlar aşağıdadır:
+
+| Belirsiz Talep | Sorulan Soru | Alınan Karar / Çözüm |
+|----------------|--------------|----------------------|
+| "Bazı müşterilerin soyadı yok." | Soyadı alanı veritabanında zorunlu (NOT NULL) mu olmalı? | **Hayır.** Soyadı opsiyonel bırakıldı. |
+| "Aynı isimde kişiler olabiliyor, dikkat edin." | İsim benzerliği duplicate sayılır mı? Ayırt edici özellik ne olacak? | **Hayır.** İsim aynı olabilir. Email ve Telefon numarası benzersiz (Unique) kabul edildi. |
+| "Adres zorunlu olmasın ama kargo için gerekli." | Adres ne zaman zorunlu olmalı? Kayıt anında mı sipariş anında mı? | **Sipariş Anında.** Müşteri oluştururken opsiyonel, sipariş verirken zorunlu. |
+| "Bazı ürünlerin stok takibi yapılmıyor." | Stok takibi ürün bazında kapatılabilir mi? | **Evet.** Ürün kartına `isStockTrackingActive` alanı eklendi. |
+| "Birden fazla fiyat türü olabiliyor." | Sabit bir fiyat listesi mi yoksa dinamik mi? | **Dinamik.** Ana fiyat haricinde `additionalPrices` JSON alanı eklendi. |
+| "Sipariş durumu ne olsun emin değilim." | Hangi durumlar (state) sistemde yer almalı? | **Standart E-Ticaret Akışı:** Pending -> Preparing -> Shipped -> Delivered / Cancelled. |
+| "Müşteri bilgisi yoksa da sipariş verilebilsin." | Misafir (Guest) siparişi desteklenecek mi? | **Evet.** `guestCustomer` objesi ile anlık müşteri oluşturulup sipariş bağlanıyor. |
+| "Telefon numaraları bazen 0 bazen +90 ile başlıyor." | Veritabanında hangi formatta tutulmalı? | **E.164 Formatı.** Tüm numaralar `+905...` formatına dönüştürülerek kaydediliyor. |
+
 ---
 
 ## 2. FONKSİYONEL GEREKSİNİMLER

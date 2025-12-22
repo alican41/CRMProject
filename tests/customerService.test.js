@@ -45,6 +45,38 @@ describe('CustomerService', () => {
       expect(customer.firstName).toBe('Ahmet');
       expect(customer.email).toBe('ahmet@test.com');
     });
+
+    test('should throw error when email or phone already exists', async () => {
+      // 1. Mevcut bir müşteri oluşturuyoruz
+      await Customer.create({
+        firstName: 'Mevcut',
+        lastName: 'Müşteri',
+        email: 'duplicate@test.com',
+        phone: '05554443322'
+      });
+
+      // 2. Aynı email ile yeni kayıt deniyoruz -> Hata vermeli
+      const payloadEmail = {
+        firstName: 'Yeni',
+        lastName: 'Müşteri',
+        email: 'duplicate@test.com',
+        traceId: 'test-trace-id'
+      };
+
+      await expect(customerService.createCustomer(payloadEmail))
+        .rejects.toThrow('Bu email veya telefon numarası ile kayıtlı müşteri zaten var.');
+
+      // 3. Aynı telefon ile yeni kayıt deniyoruz -> Hata vermeli
+      const payloadPhone = {
+        firstName: 'Yeni',
+        lastName: 'Müşteri',
+        phone: '05554443322',
+        traceId: 'test-trace-id'
+      };
+
+      await expect(customerService.createCustomer(payloadPhone))
+        .rejects.toThrow('Bu email veya telefon numarası ile kayıtlı müşteri zaten var.');
+    });
   });
 
   describe('getCustomerById', () => {

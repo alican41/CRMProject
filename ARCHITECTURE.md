@@ -68,32 +68,157 @@ Database (PostgreSQL)
 Response
 ```
 
-## Tasarım Kararları
+## UML Diyagramları
 
-### 1. Sequelize ORM Kullanımı
-**Neden:** 
-- Migration desteği
-- İlişki yönetimi kolaylığı
-- PostgreSQL desteği
+### 1. Use Case Diyagramı (Metin Bazlı)
 
-### 2. Winston Logger
-**Neden:**
-- Profesyonel loglama
-- Farklı transport'lar (file, console)
-- Log rotation desteği
+```plantuml
+@startuml
+left to right direction
+actor "Admin/Kullanıcı" as User
 
-### 3. Express-validator
-**Neden:**
-- Middleware tabanlı
-- Express ile entegrasyonu kolay
-- Zengin validation kuralları
+package "Mini-CRM Sistemi" {
+  usecase "Müşteri Ekle" as UC1
+  usecase "Müşteri Listele" as UC2
+  usecase "Sipariş Oluştur" as UC3
+  usecase "Sipariş Durumu Güncelle" as UC4
+  usecase "Ürün Ekle" as UC5
+  usecase "Stok Takibi" as UC6
+  usecase "Excel'den Müşteri Aktar" as UC7
+}
 
-### 4. Layered Architecture
-**Neden:**
-- Separation of concerns
-- Testability
-- Maintainability
-- Scalability
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+@enduml
+```
+
+### 2. Class Diyagramı (Özet)
+
+```plantuml
+@startuml
+class Customer {
+  +Integer id
+  +String firstName
+  +String lastName
+  +String email
+  +String phone
+  +String address
+  +Boolean isActive
+}
+
+class Order {
+  +Integer id
+  +Integer customerId
+  +String status
+  +Decimal totalAmount
+  +Date createdAt
+}
+
+class OrderItem {
+  +Integer id
+  +Integer orderId
+  +Integer productId
+  +String productName
+  +Integer quantity
+  +Decimal unitPrice
+}
+
+class Product {
+  +Integer id
+  +String name
+  +Decimal price
+  +Integer stockQuantity
+  +Boolean isStockTrackingActive
+  +JSON additionalPrices
+}
+
+Customer "1" -- "0..*" Order : places
+Order "1" -- "1..*" OrderItem : contains
+Product "1" -- "0..*" OrderItem : referenced_by
+@enduml
+```
+
+### 3. Sequence Diyagramı (Sipariş Oluşturma)
+
+```plantuml
+@startuml
+actor Client
+participant "Order Route" as Route
+participant "Order Service" as Service
+participant "Customer Model" as CustModel
+participant "Product Model" as ProdModel
+participant "Order Model" as OrdModel
+database DB
+
+Client -> Route: POST /api/orders
+Route -> Service: createOrder(payload)
+Service -> CustModel: findByPk(customerId)
+alt Müşteri Yok
+  Service --> Route: Error 404
+else Müşteri Var
+  Service -> Service: Adres Kontrolü
+  alt Adres Yok
+    Service --> Route: Error 400
+  else Adres Var
+    loop Her Ürün İçin
+      Service -> ProdModel: Stok Kontrolü
+      alt Stok Yetersiz
+        Service --> Route: Error 400
+      else Stok Yeterli
+        Service -> ProdModel: Stok Düş (decrement)
+      end
+    end
+    Service -> OrdModel: create(order)
+    OrdModel -> DB: INSERT INTO orders
+    Service --> Route: Order Created
+    Route --> Client: 201 Created
+  end
+end
+@enduml
+```
+
+## API Uçları Listesi
+
+| Method | Endpoint | Açıklama |
+|--------|----------|----------|
+| GET | `/api/customers` | Müşterileri listele |
+| POST | `/api/customers` | Yeni müşteri oluştur |
+| GET | `/api/customers/:id` | Müşteri detayı |
+| PUT | `/api/customers/:id` | Müşteri güncelle |
+| DELETE | `/api/customers/:id` | Müşteri sil (soft delete) |
+| GET | `/api/orders` | Siparişleri listele |
+| POST | `/api/orders` | Sipariş oluştur |
+| GET | `/api/orders/:id` | Sipariş detayı |
+| PUT | `/api/orders/:id` | Sipariş durumu güncelle |
+| GET | `/api/products` | Ürünleri listele |
+| POST | `/api/products` | Ürün oluştur |
+
+## Logging, Konfigürasyon ve Migration
+
+### Logging Yapısı
+- **Kütüphane:** Winston
+- **Özellikler:**
+  - `traceId`: Her isteği takip etmek için benzersiz ID.
+  - `DailyRotateFile`: Loglar günlük dosyalanır ve 14 gün saklanır.
+  - `requestLogger`: HTTP isteklerinin süresini ve durumunu otomatik loglar.
+
+### Konfigürasyon
+- **Yöntem:** Environment Variables (.env)
+- **Yapı:** `src/config/index.js` üzerinden ortam (dev/test/prod) bazlı ayarlar yüklenir.
+- **Güvenlik:** Şifreler kodda değil, ortam değişkenlerinde saklanır.
+
+### Migration Stratejisi
+- **Araç:** Sequelize CLI
+- **Yaklaşım:**
+  - Tablo oluşturma (`createTable`)
+  - Kolon ekleme (`addColumn`) - Mevcut veriyi korumak için.
+  - İndeks ekleme (`addIndex`) - Performans için.
+- **Versiyonlama:** Timestamp tabanlı dosya isimleri ile sıralı çalışma garantisi.
 
 ## Database Şeması
 

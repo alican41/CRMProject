@@ -10,7 +10,8 @@ const sequelize = new Sequelize(
     host: config.db.host,
     port: config.db.port,
     dialect: config.db.dialect,
-    logging: msg => logger.debug(msg) // TODO: test ortamında kapatılmalı
+    logging: config.db.logging, // Config'den gelen ayarı kullan
+    pool: config.db.pool // Production pool ayarları için
   }
 );
 

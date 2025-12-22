@@ -13,7 +13,13 @@ module.exports = (sequelize, DataTypes) => {
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'pending' // müşteri 'hazırlanıyor' demişti, sync değil
+      defaultValue: 'pending',
+      validate: {
+        isIn: {
+          args: [['pending', 'preparing', 'shipped', 'delivered', 'cancelled']],
+          msg: "Durum şunlardan biri olmalıdır: pending, preparing, shipped, delivered, cancelled"
+        }
+      }
     },
     totalAmount: {
       type: DataTypes.DECIMAL(10, 2),

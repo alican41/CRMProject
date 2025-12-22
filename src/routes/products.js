@@ -109,6 +109,10 @@ router.get('/:id', async (req, res, next) => {
  *               price:
  *                 type: number
  *                 example: 25000.00
+ *               additionalPrices:
+ *                 type: object
+ *                 description: "Farklı fiyat türleri (JSON)"
+ *                 example: { "toptan": 24000, "dolar": 800 }
  *               stockQuantity:
  *                 type: integer
  *                 example: 10

@@ -1,4 +1,5 @@
 const { Customer } = require('../models');
+const { Op } = require('sequelize');
 const logger = require('../lib/logger');
 
 async function listCustomers() {
@@ -8,6 +9,25 @@ async function listCustomers() {
 }
 
 async function createCustomer(payload) {
+  // Email veya telefon numarası ile mükerrer kayıt kontrolü
+  const whereConditions = [];
+  if (payload.email) whereConditions.push({ email: payload.email });
+  if (payload.phone) whereConditions.push({ phone: payload.phone });
+
+  if (whereConditions.length > 0) {
+    const existingCustomer = await Customer.findOne({
+      where: {
+        [Op.or]: whereConditions
+      }
+    });
+
+    if (existingCustomer) {
+      const error = new Error('Bu email veya telefon numarası ile kayıtlı müşteri zaten var.');
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
   logger.info('Creating customer', { 
     traceId: payload.traceId,
     firstName: payload.firstName,

@@ -71,16 +71,42 @@ router.get('/', async (req, res, next) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required:
- *               - customerId
  *             properties:
  *               customerId:
  *                 type: integer
+ *                 description: "Mevcut müşteri ID (guestCustomer yoksa zorunlu)"
  *                 example: 1
+ *               guestCustomer:
+ *                 type: object
+ *                 description: "Misafir müşteri bilgileri (customerId yoksa zorunlu)"
+ *                 properties:
+ *                   firstName:
+ *                     type: string
+ *                   lastName:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   address:
+ *                     type: string
  *               status:
  *                 type: string
- *                 enum: [pending, processing, shipped, delivered, cancelled]
+ *                 enum: [pending, preparing, shipped, delivered, cancelled]
  *                 example: pending
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     productId:
+ *                       type: integer
+ *                     productName:
+ *                       type: string
+ *                     quantity:
+ *                       type: integer
+ *                     unitPrice:
+ *                       type: number
  *               totalAmount:
  *                 type: number
  *                 example: 250.50

@@ -14,12 +14,18 @@ const validate = (req, res, next) => {
 // Sipariş oluşturma validation
 const createOrderValidation = [
   body('customerId')
-    .notEmpty().withMessage('Müşteri ID zorunludur')
+    .if(body('guestCustomer').not().exists()) // Eğer guestCustomer yoksa customerId zorunlu
+    .notEmpty().withMessage('Müşteri ID veya Misafir Müşteri bilgisi zorunludur')
     .isInt({ min: 1 }).withMessage('Geçerli bir müşteri ID giriniz'),
   
+  body('guestCustomer')
+    .if(body('customerId').not().exists()) // Eğer customerId yoksa guestCustomer zorunlu
+    .notEmpty().withMessage('Müşteri ID veya Misafir Müşteri bilgisi zorunludur')
+    .isObject().withMessage('Misafir müşteri bilgileri obje olmalıdır'),
+
   body('status')
     .optional()
-    .isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled'])
+    .isIn(['pending', 'preparing', 'shipped', 'delivered', 'cancelled'])
     .withMessage('Geçersiz sipariş durumu'),
   
   body('totalAmount')
@@ -37,7 +43,7 @@ const updateOrderValidation = [
   
   body('status')
     .optional()
-    .isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled'])
+    .isIn(['pending', 'preparing', 'shipped', 'delivered', 'cancelled'])
     .withMessage('Geçersiz sipariş durumu'),
   
   body('totalAmount')

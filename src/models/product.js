@@ -46,6 +46,11 @@ module.exports = (sequelize, DataTypes) => {
           }
         }
       },
+      additionalPrices: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        comment: 'Farklı fiyat türleri (örn: toptan, indirimli)'
+      },
       stockQuantity: {
         type: DataTypes.INTEGER,
         allowNull: false,
