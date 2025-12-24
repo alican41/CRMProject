@@ -127,7 +127,7 @@ Sunucu `http://localhost:3000` adresinde çalışacaktır.
 - `PUT /api/orders/:id` - Sipariş güncelle
 - `DELETE /api/orders/:id` - Sipariş sil
 
-### Örnek Kullanım
+### Örnek Kullanım Senaryosu
 
 ```bash
 # Müşteri oluştur
