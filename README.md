@@ -48,7 +48,7 @@ E-Ticaret firması için müşteri ve sipariş yönetim sistemi.
 
 ```bash
 git clone https://github.com/alican41/CRMProject
-cd mini-crm
+cd CRMProject
 ```
 
 ### Adım 2: Bağımlılıkları Yükleyin
@@ -127,7 +127,7 @@ Sunucu `http://localhost:3000` adresinde çalışacaktır.
 - `PUT /api/orders/:id` - Sipariş güncelle
 - `DELETE /api/orders/:id` - Sipariş sil
 
-### Örnek Kullanım
+### Örnek Kullanım Senaryosu
 
 ```bash
 # Müşteri oluştur
