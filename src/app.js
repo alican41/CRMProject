@@ -12,7 +12,7 @@ const cors = require('cors');
 
 const app = express();
 
-// TODO: rate limiting, cors vs. düşünülmemiş
+
 app.use(express.json());
 
 app.use(traceIdMiddleware);

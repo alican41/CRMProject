@@ -59,7 +59,8 @@ describe('E2E Tests - Complete Workflows', () => {
           firstName: 'Ali',
           lastName: 'Veli',
           email: 'ali@example.com',
-          phone: '05321112235'
+          phone: '05321112235',
+          address: 'Test Adresi No:1 Istanbul'
         });
       
       const customerId = createRes.body.id;
@@ -70,7 +71,7 @@ describe('E2E Tests - Complete Workflows', () => {
         .send({
           customerId,
           status: 'pending',
-          totalAmount: 150.75
+          totalAmount: '150.75'
         });
 
       expect(res.status).toBe(201);
@@ -87,7 +88,8 @@ describe('E2E Tests - Complete Workflows', () => {
           firstName: 'Ayşe',
           lastName: 'Kaya',
           email: 'ayse@example.com',
-          phone: '05321112236'
+          phone: '05321112236',
+          address: 'İzmir'
         });
       
       const customerId = customerRes.body.id;
@@ -98,7 +100,7 @@ describe('E2E Tests - Complete Workflows', () => {
         .send({
           customerId,
           status: 'pending',
-          totalAmount: 150.75
+          totalAmount: '150.75' 
         });
       
       const orderId = orderRes.body.id;
@@ -107,7 +109,7 @@ describe('E2E Tests - Complete Workflows', () => {
       const res = await request(app)
         .put(`/api/orders/${orderId}`)
         .send({ status: 'shipped' });
-
+      
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('shipped');
     });
@@ -120,7 +122,8 @@ describe('E2E Tests - Complete Workflows', () => {
           firstName: 'Fatma',
           lastName: 'Şahin',
           email: 'fatma@example.com',
-          phone: '05321112237'
+          phone: '05321112237',
+          address: 'Bursa'
         });
       
       const customerId = customerRes.body.id;
@@ -131,7 +134,7 @@ describe('E2E Tests - Complete Workflows', () => {
         .send({
           customerId,
           status: 'pending',
-          totalAmount: 200
+          totalAmount: '200.00'
         });
 
       await request(app)
@@ -139,7 +142,7 @@ describe('E2E Tests - Complete Workflows', () => {
         .send({
           customerId,
           status: 'delivered',
-          totalAmount: 350
+          totalAmount: '350.50'
         });
 
       // Müşterinin siparişlerini listele
@@ -231,7 +234,8 @@ describe('E2E Tests - Complete Workflows', () => {
           firstName: 'DeleteTest',
           lastName: 'User',
           email: 'deletetest@example.com',
-          phone: '05321119999'
+          phone: '05321119999',
+          address: 'Silinecek Adres'
         });
 
       const customerId = customerRes.body.id;
@@ -243,7 +247,7 @@ describe('E2E Tests - Complete Workflows', () => {
         .send({
           customerId,
           status: 'pending',
-          totalAmount: 100
+          totalAmount: '100.00'
         });
       
       expect(orderRes.status).toBe(201);

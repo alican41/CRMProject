@@ -21,8 +21,16 @@ const report = {
   success: 0,
   failed: 0,
   duplicates: 0,
-  warnings: []
+  skipped: 0,
+  errors: [], // Ciddi hatalar (Veritabanı vb)
+  warnings: [] // Validasyon hataları
 };
+
+function isValidEmail(email) {
+  if (!email) return false;
+  // Basit regex
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 function readFile(filePath) {
   try {
@@ -102,9 +110,33 @@ async function importCustomers(options = {}) {
       const address = cleanAddress(row.Adres);
       const notes = row.Not ? toEnglishCharacters(row.Not.toString().trim()) : null;
 
-      // Zorunlu alan doldurma
-      if (!firstName) firstName = "Bilinmeyen";
-      if (!lastName) lastName = "-";
+      // --- VALIDASYON ---
+      const validationErrors = [];
+
+      if (!firstName || firstName.length < 2) {
+        validationErrors.push(`Geçersiz Ad (${row.Ad})`);
+      }
+      
+      if (!lastName || lastName.length < 2) {
+        validationErrors.push(`Geçersiz Soyad (${row.Soyad})`);
+      }
+
+      // Email varsa valid formatta olmalı
+      if (row.Email && !isValidEmail(email)) {
+        validationErrors.push(`Geçersiz Email (${row.Email})`);
+      }
+
+      // Telefon zorunlu olsun
+      if (!phone) {
+        validationErrors.push(`Geçersiz/Eksik Telefon (${row.Telefon})`);
+      }
+
+      // Validasyon hatası varsa atla
+      if (validationErrors.length > 0) {
+        report.skipped++;
+        report.warnings.push(`Satır ${rowNum} Atlandı: ${validationErrors.join(', ')}`);
+        continue;
+      }
 
       // 4. DUPLICATE KONTROLÜ
       // "Omer" + "Celik" + "+905..." kombinasyonu kontrol edilir.
@@ -112,7 +144,7 @@ async function importCustomers(options = {}) {
 
       if (existingRecords.has(compositeKey)) {
         report.duplicates++;
-        report.warnings.push(`Satır ${rowNum}: [${firstName} ${lastName} - ${phone}] zaten mevcut. Atlandı.`);
+        report.warnings.push(`Satır ${rowNum}: [${firstName} ${lastName} - ${phone}] zaten mevcut (Duplicate).`);
       } else {
         // 5. LİSTEYE EKLE (İngilizce Karakterli Haliyle)
         customersToInsert.push({
@@ -166,6 +198,11 @@ async function importCustomers(options = {}) {
       console.log("Atlanan Kayıtlar (İlk 5):");
       report.warnings.slice(0, 5).forEach(w => console.log(w));
     }
+
+    // Raporu dosyaya yaz
+    const reportPath = path.join(__dirname, '..', 'data', 'import-report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+    console.log(`\n📄 Rapor dosyası güncellendi: ${reportPath}`);
 
   } catch (error) {
     console.error("Kritik Hata:", error);
