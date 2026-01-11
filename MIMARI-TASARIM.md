@@ -1,10 +1,51 @@
-# 🏗️ Mimari Dokümantasyon
+# Mimari Tasarım Dokümanı
 
-## Genel Bakış
+## 1. Veritabanı Şeması
 
-Mini-CRM, layered (katmanlı) mimari yaklaşımı ile geliştirilmiş bir REST API'dir.
+Projenin veritabanı şeması aşağıdaki gibidir:
 
-## Katmanlar
+### Customers Table
+`customers`
+- `id` (PK, Serial)
+- `first_name` (NOT NULL)
+- `last_name`
+- `email` (Unique)
+- `phone`
+- `address`
+- `is_active` (Default: true)
+- `created_at`, `updated_at`
+
+### Products Table
+`products`
+- `id` (PK, Serial)
+- `name` (NOT NULL)
+- `price` (Decimal(10,2))
+- `stock_quantity` (Int, Default: 0)
+- `is_stock_tracking_active` (Boolean, Default: true)
+- `additional_prices` (JSON)
+- `is_active` (Default: true)
+
+### Orders Table
+`orders`
+- `id` (PK, Serial)
+- `customer_id` (FK -> customers.id)
+- `status` (Enum: pending, processing, shipped, delivered, cancelled)
+- `total_amount` (Decimal)
+- `created_at`, `updated_at`
+
+### Order Items Table
+`order_items`
+- `id` (PK, Serial)
+- `order_id` (FK -> orders.id)
+- `product_id` (FK -> products.id, Nullable)
+- `product_name` (String) - Anlık görüntüsü
+- `quantity` (Int)
+- `unit_price` (Decimal)
+- `subtotal` (Decimal)
+
+---
+
+## 2. Modüller ve Servisler
 
 ### 1. Routes (Routing Katmanı)
 - **Görev:** HTTP isteklerini karşılar, route tanımları
@@ -40,38 +81,15 @@ Mini-CRM, layered (katmanlı) mimari yaklaşımı ile geliştirilmiş bir REST A
   - İlişki tanımları
   - Veri validasyonu
 
-### 5. Utils (Yardımcı Fonksiyonlar)
-- **Görev:** Tekrar kullanılabilir fonksiyonlar
-- **Dosyalar:** `src/utils/*.js`
-- **Örnekler:**
-  - Veri temizleme
-  - Formatting
-  - Helper functions
+---
 
-## Veri Akışı
+## 3. UML Diyagramları
 
-```
-Client Request
-     ↓
-Middleware (traceId, requestLogger)
-     ↓
-Routes (HTTP handler)
-     ↓
-Middleware (validation)
-     ↓
-Services (business logic)
-     ↓
-Models (database operations)
-     ↓
-Database (PostgreSQL)
-     ↓
-Response
-```
+### 1. Use Case Diyagramı
 
-## UML Diyagramları
+*![alt text](usecase.png)*
 
-### 1. Use Case Diyagramı (Metin Bazlı)
-
+**PlantUML Kodu:**
 ```plantuml
 @startuml
 left to right direction
@@ -97,8 +115,12 @@ User --> UC7
 @enduml
 ```
 
-### 2. Class Diyagramı (Özet)
+### 2. Class Diyagramı
 
+*![alt text](class.png)*
+
+
+**PlantUML Kodu:**
 ```plantuml
 @startuml
 class Customer {
@@ -145,6 +167,9 @@ Product "1" -- "0..*" OrderItem : referenced_by
 
 ### 3. Sequence Diyagramı (Sipariş Oluşturma)
 
+*![alt text](sequence.png)*
+
+**PlantUML Kodu:**
 ```plantuml
 @startuml
 actor Client
@@ -182,7 +207,9 @@ end
 @enduml
 ```
 
-## API Uçları Listesi
+---
+
+## 4. API Uçları Listesi
 
 | Method | Endpoint | Açıklama |
 |--------|----------|----------|
@@ -198,7 +225,9 @@ end
 | GET | `/api/products` | Ürünleri listele |
 | POST | `/api/products` | Ürün oluştur |
 
-## Logging, Konfigürasyon ve Migration
+---
+
+## 5. Logging, Konfigürasyon ve Migration
 
 ### Logging Yapısı
 - **Kütüphane:** Winston
@@ -219,63 +248,3 @@ end
   - Kolon ekleme (`addColumn`) - Mevcut veriyi korumak için.
   - İndeks ekleme (`addIndex`) - Performans için.
 - **Versiyonlama:** Timestamp tabanlı dosya isimleri ile sıralı çalışma garantisi.
-
-## Database Şeması
-
-### Customers Table
-```sql
-customers (
-  id SERIAL PRIMARY KEY,
-  first_name VARCHAR(50) NOT NULL,
-  last_name VARCHAR(50),
-  phone VARCHAR(20),
-  email VARCHAR(100),
-  address TEXT,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-)
-```
-
-### Orders Table
-```sql
-orders (
-  id SERIAL PRIMARY KEY,
-  customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
-  status VARCHAR(20) NOT NULL DEFAULT 'pending',
-  total_amount DECIMAL(10,2),
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-)
-```
-
-## API Tasarım Prensipleri
-
-1. **RESTful:** Resource-based URL'ler
-2. **Validation:** Her input doğrulanır
-3. **Error Handling:** Standart error format
-4. **Logging:** Her istek loglanır
-5. **Trace ID:** Request tracking
-
-## Güvenlik
-
-- Input validation
-- SQL injection koruması (Sequelize ORM)
-- Error handling (stack trace production'da gizli)
-- Environment variables
-
-## Performans
-
-- Database indexing
-- Connection pooling
-- Log rotation
-- Pagination desteği (limit)
-
-## Gelecek İyileştirmeler
-
-- [ ] Authentication/Authorization (JWT)
-- [ ] Rate limiting
-- [ ] Caching (Redis)
-- [ ] Pagination iyileştirme
-- [ ] WebSocket desteği
-- [ ] Email notification

@@ -1,8 +1,8 @@
-# 🗄️ Migration Raporu ve Veritabanı Şema Geçmişi
+# Migration Raporu ve Veritabanı Şema Geçmişi
 
 Bu rapor, projedeki veritabanı şema değişikliklerini, uygulanan migration stratejilerini ve versiyon geçmişini içerir.
 
-## 📋 Migration Stratejisi
+## Migration Stratejisi
 
 Projede **Sequelize CLI** kullanılarak **Versioned Migration** stratejisi uygulanmıştır.
 - **Timestamp Bazlı İsimlendirme:** Dosyalar `YYYYMMDDHHMMSS-description.js` formatındadır. Bu, değişikliklerin kronolojik sırayla uygulanmasını garanti eder.
@@ -11,7 +11,7 @@ Projede **Sequelize CLI** kullanılarak **Versioned Migration** stratejisi uygul
 
 ---
 
-## 📅 Migration Geçmişi
+## Migration Geçmişi
 
 ### 1. Başlangıç Şeması (Initial Schema)
 **Dosyalar:**
@@ -63,7 +63,7 @@ Projede **Sequelize CLI** kullanılarak **Versioned Migration** stratejisi uygul
 
 ---
 
-## 📊 Mevcut Tablo Yapısı (Özet)
+## Mevcut Tablo Yapısı (Özet)
 
 | Tablo | Açıklama | Önemli İlişkiler |
 |-------|----------|------------------|

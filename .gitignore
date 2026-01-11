@@ -49,3 +49,5 @@ data/*.json
 # Test database
 mini_crm_test
 
+# Assets 
+assets

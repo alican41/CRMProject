@@ -1,10 +1,8 @@
-# 📋 GEREKSİNİM ANALİZ DOKÜMANI
+# GEREKSİNİM ANALİZ DOKÜMANI
 
 ## Proje Bilgileri
 - **Proje Adı:** Mini-CRM (Customer Relationship Management)
 - **Versiyon:** 1.0.0
-- **Tarih:** Aralık 2025
-- **Durum:** Tamamlandı (Yarım kalan projeden devralındı - %40 → %100)
 
 ---
 
@@ -14,16 +12,15 @@
 E-ticaret firmasının müşteri ve sipariş bilgilerini Excel/WhatsApp yerine merkezi bir sistemde yönetmesi.
 
 ### 1.2 Mevcut Durum Analizi
-- ✅ Yarım kalan proje %40 seviyesinde teslim alındı
-- ✅ Eksik API endpoint'leri tamamlandı
-- ✅ Veri tabanı şeması düzeltildi
-- ✅ Dokümantasyon oluşturuldu
-- ✅ Test coverage %75+ seviyesine çıkarıldı
-- ✅ ETL sistemi geliştirildi
+- Eksik API endpoint'leri tamamlandı
+- Veri tabanı şeması düzeltildi
+- Dokümantasyon oluşturuldu
+- Test coverage %75+ seviyesine çıkarıldı
+- ETL sistemi geliştirildi
 
 ### 1.3 Belirsizlikler ve Netleştirme Soruları (Soru Listesi)
 
-Proje sürecinde müşteri (hoca) tarafından iletilen belirsiz talepler için hazırlanan soru listesi ve alınan kararlar aşağıdadır:
+Proje sürecinde müşteri tarafından iletilen belirsiz talepler için hazırlanan soru listesi ve alınan kararlar aşağıdadır:
 
 | Belirsiz Talep | Sorulan Soru | Alınan Karar / Çözüm |
 |----------------|--------------|----------------------|
@@ -35,6 +32,11 @@ Proje sürecinde müşteri (hoca) tarafından iletilen belirsiz talepler için h
 | "Sipariş durumu ne olsun emin değilim." | Hangi durumlar (state) sistemde yer almalı? | **Standart E-Ticaret Akışı:** Pending -> Preparing -> Shipped -> Delivered / Cancelled. |
 | "Müşteri bilgisi yoksa da sipariş verilebilsin." | Misafir (Guest) siparişi desteklenecek mi? | **Evet.** `guestCustomer` objesi ile anlık müşteri oluşturulup sipariş bağlanıyor. |
 | "Telefon numaraları bazen 0 bazen +90 ile başlıyor." | Veritabanında hangi formatta tutulmalı? | **E.164 Formatı.** Tüm numaralar `+905...` formatına dönüştürülerek kaydediliyor. |
+| "Sipariş oluştururken ürün stokta yoksa ne yapacağımızı ben de bilmiyorum..." | Stokta olmayan ürün sipariş edilebilir mi (Backorder)? | **Hayır.** Yetersiz stok varsa sipariş reddedilir (400 Bad Request). |
+| "Önceki yazılımcı tablo isimlerini İngilizce mi Türkçe mi yapacaktı..." | Veritabanı isimlendirme standardı ne olmalı? | **İngilizce.** Tablo ve kolon isimleri İngilizce (customer, product) olarak belirlendi. |
+| "Şifreleri sisteme koymayın, ama çalışması lazım." | Hassas veriler (DB şifresi vb.) nasıl saklanmalı? | **Environment Variables.** .env dosyası kullanıldı, kod içerisine şifre yazılmadı. |
+| "Bazı ekranlarda çok yavaşlık oluyor denmişti..." | Performans için veritabanında ne yapılmalı? | **Indexleme.** Sık sorgulanan alanlara (email, phone, status) index eklendi. |
+| "Sanırım testler bozuk, hangileri çalışıyordu hatırlamıyorum." | Mevcut testlerin durumu nedir? | **Onarıldı.** Tüm testler elden geçirildi, çalışmayanlar düzeltildi ve coverage artırıldı. |
 
 ---
 
@@ -193,266 +195,46 @@ ahmet.mail.com  → Geçersiz (@ eksik)
 
 **Çözüm:**
 - Minimum %60 test coverage (Gerçekleşen: %75+)
-- Unit tests (services)
-- Integration tests (API endpoints)
-- E2E tests (complete workflows)
-
-**Test Türleri:**
-- `customers.test.js` - 18 test
-- `orders.test.js` - 14 test
-- `customerService.test.js` - 7 test
-- `e2e.test.js` - 12 test
-**Toplam:** 51+ test
+- Unit tests
+- Integration tests
+- E2E tests
 
 ### 3.5 Dokümantasyon
 **Talep:** "Doküman iyi olsun ama çok uzun olmasın."
 
 **Çözüm:**
-- `README.md` - Kurulum ve kullanım
-- `ARCHITECTURE.md` - Mimari kararlar
-- `PROJE-TAMAMLAMA-REHBERI.md` - Adım adım tamamlama
-- Swagger/OpenAPI - API dokümantasyonu
-- Inline comments (gerekli yerlerde)
+- Kurulum ve kullanım rehberleri
+- Mimari kararlar dokümanı
+- API dokümantasyonu
 
 ---
 
-## 4. TEKNİK GEREKSİNİMLER
+## 4. KABUL KRİTERLERİ
 
-### 4.1 Teknoloji Stack
-- **Runtime:** Node.js v18+
-- **Framework:** Express.js
-- **Database:** PostgreSQL 14+
-- **ORM:** Sequelize
-- **Validation:** express-validator
-- **Logging:** Winston
-- **Testing:** Jest + Supertest
-- **Documentation:** Swagger UI Express
-
-### 4.2 Ortam Konfigürasyonu
-**Talep:** "Test ortamı ile gerçek ortam arasında bazı farklar var"
-
-**Çözüm:**
-```env
-# Development (.env)
-NODE_ENV=development
-DB_NAME=mini_crm
-LOG_LEVEL=debug
-
-# Test
-NODE_ENV=test
-DB_NAME=mini_crm_test
-LOG_LEVEL=error
-
-# Production
-NODE_ENV=production
-DB_NAME=mini_crm_prod
-LOG_LEVEL=warn
-```
-
-### 4.3 Migration Stratejisi
-**Talep:** "Mevcut veritabanını çok bozmadan yeni alanlar eklememiz gerekecek."
-
-**Çözüm:**
-- Sequelize CLI migration system
-- Versioned migrations (timestamp-based)
-- Rollback desteği (`migrate:undo`)
-
-**Mevcut Migrations:**
-1. `20240101000000-create-customer.js`
-2. `20240102000000-create-order.js`
-3. `20251203150339-add-indexes.js`
-
----
-
-## 5. API ENDPOINT'LERİ
-
-### 5.1 Customers API
-```
-GET    /api/customers          - Tüm müşterileri listele
-POST   /api/customers          - Yeni müşteri oluştur
-GET    /api/customers/:id      - Müşteri detayı
-PUT    /api/customers/:id      - Müşteri güncelle
-DELETE /api/customers/:id      - Müşteri sil
-```
-
-### 5.2 Orders API
-```
-GET    /api/orders             - Siparişleri listele (filtreleme: status, customerId)
-POST   /api/orders             - Yeni sipariş oluştur
-GET    /api/orders/:id         - Sipariş detayı
-PUT    /api/orders/:id         - Sipariş güncelle
-DELETE /api/orders/:id         - Sipariş sil
-```
-
-### 5.3 Utility Endpoints
-```
-GET    /health                 - Health check
-GET    /api-docs               - Swagger UI
-GET    /api-docs.json          - OpenAPI JSON
-```
-
----
-
-## 6. VERİ TABANI ŞEMASI
-
-### 6.1 Customers Table
-```sql
-CREATE TABLE customers (
-  id SERIAL PRIMARY KEY,
-  first_name VARCHAR(50) NOT NULL,
-  last_name VARCHAR(50),
-  phone VARCHAR(20),
-  email VARCHAR(100) UNIQUE,
-  address TEXT,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Indexes
-CREATE INDEX idx_customers_email ON customers(email);
-CREATE INDEX idx_customers_phone ON customers(phone);
-CREATE INDEX idx_customers_is_active ON customers(is_active);
-```
-
-### 6.2 Orders Table
-```sql
-CREATE TABLE orders (
-  id SERIAL PRIMARY KEY,
-  customer_id INTEGER REFERENCES customers(id) ON DELETE CASCADE,
-  status VARCHAR(20) NOT NULL DEFAULT 'pending',
-  total_amount DECIMAL(10,2),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Indexes
-CREATE INDEX idx_orders_customer_id ON orders(customer_id);
-CREATE INDEX idx_orders_status ON orders(status);
-CREATE INDEX idx_orders_created_at ON orders(created_at);
-```
-
----
-
-## 7. PROJE DAĞITIMI
-
-### 7.1 Kod Yapısı
-```
-src/
-├── app.js                     # Express app
-├── server.js                  # Server başlatma
-├── config/                    # Konfigürasyonlar
-│   ├── index.js
-│   ├── database.js
-│   └── swagger.js
-├── lib/                       # Kütüphaneler
-│   └── logger.js
-├── middlewares/               # Middleware'ler
-│   ├── traceId.js
-│   ├── requestLogger.js
-│   ├── customerValidation.js
-│   └── orderValidation.js
-├── models/                    # Sequelize models
-│   ├── index.js
-│   ├── customer.js
-│   └── order.js
-├── routes/                    # API routes
-│   ├── customers.js
-│   └── orders.js
-├── services/                  # Business logic
-│   ├── customerService.js
-│   └── orderService.js
-└── utils/                     # Utility fonksiyonlar
-    └── dataCleaners.js
-```
-
-### 7.2 Test Yapısı
-```
-tests/
-├── setup.js                   # Test setup
-├── customers.test.js          # Customer API tests
-├── orders.test.js             # Order API tests
-├── customerService.test.js    # Service unit tests
-└── e2e.test.js                # End-to-end tests
-```
-
----
-
-## 8. KABUL KRİTERLERİ
-
-### ✅ Tamamlanan Gereksinimler
+###  Tamamlanan Gereksinimler
 
 1. **Kod Geliştirme:**
-   - [x] Eksik API endpoint'leri tamamlandı
-   - [x] CRUD operasyonları çalışıyor
-   - [x] Validation middleware'leri eklendi
-   - [x] Service layer oluşturuldu
+   -  Eksik API endpoint'leri tamamlandı
+   -  CRUD operasyonları çalışıyor
+   -  Validation middleware'leri eklendi
+   -  Service layer oluşturuldu
 
 2. **Veritabanı:**
-   - [x] Migration dosyaları düzeltildi
-   - [x] Foreign key constraint'ler eklendi
-   - [x] Index optimizasyonları yapıldı
-   - [x] Cascade delete yapılandırıldı
+   -  Foreign key constraint'ler eklendi
+   -  Index optimizasyonları yapıldı
 
 3. **Test:**
-   - [x] 51+ test yazıldı
-   - [x] %75+ coverage sağlandı
-   - [x] E2E testler eklendi
-   - [x] CI pipeline hazır (GitHub Actions)
-
-4. **Loglama:**
-   - [x] Winston logger kuruldu
-   - [x] Trace ID mekanizması
-   - [x] Daily rotation
-   - [x] Request/Response logging
-
-5. **ETL:**
-   - [x] Excel/CSV import scripti
-   - [x] Veri temizleme (phone, email, name)
-   - [x] Duplicate detection
-   - [x] Import raporu (JSON)
-
-6. **Dokümantasyon:**
-   - [x] README.md
-   - [x] ARCHITECTURE.md
-   - [x] Swagger/OpenAPI
-   - [x] Proje tamamlama rehberi
-
-7. **Konfigürasyon:**
-   - [x] .env yapısı
-   - [x] Development/Test/Production ayrımı
-   - [x] .gitignore düzenlendi
-   - [x] Health check endpoint
+   -  51+ test yazıldı
+   -  %75+ coverage sağlandı
 
 ---
 
-## 9. AÇIK KALAN KONULAR (İYİLEŞTİRME FİKİRLERİ)
+## 5. SONUÇ
 
-Bu gereksinimler şu an için kapsam dışı bırakıldı:
+Proje PDF'deki tüm gereksinimleri karşılayacak şekilde tamamlanmıştır ve gerekli dokümantasyonlar hazırlanmıştır.
 
-- [ ] Ürün yönetimi (Stok takibi)
-- [ ] Authentication/Authorization (JWT)
-- [ ] Rate limiting
-- [ ] Caching (Redis)
-- [ ] Email notification
-- [ ] Payment gateway entegrasyonu
-- [ ] Admin panel (Frontend)
 
----
 
-## 10. SONUÇ
 
-Proje PDF'deki tüm gereksinimleri karşılayacak şekilde tamamlanmıştır:
 
-**İlerleme:** %100 ✅
 
-**Teslim Edilen Çıktılar:**
-1. ✅ Çalışır durumda proje
-2. ✅ Test raporu (51+ test, %75+ coverage)
-3. ✅ Migration dosyaları (3 adet)
-4. ✅ ETL scripti + rapor
-5. ✅ Dokümantasyon (4 dosya)
-6. ✅ CI/CD Pipeline (GitHub Actions)
-7. ✅ Gereksinim analizi (bu doküman)
-
-**Proje Durumu:** Production'a hazır 🚀

@@ -1,4 +1,4 @@
-# 🚀 Mini-CRM Projesi Tamamlama Rehberi
+# Mini-CRM Projesi Tamamlama Rehberi
 
 > **E-Ticaret Firması için Yarım Kalmış CRM Sistemini Tamamlama Projesi**
 
@@ -6,47 +6,47 @@ Bu rehber, %40 tamamlanmış Mini-CRM projesini adım adım tamamlamanız için 
 
 ---
 
-## 📖 PROJE HAKKINDA
+## PROJE HAKKINDA
 
 ### Senaryo
 Bir e-ticaret firması müşteri bilgilerini Excel'de, siparişleri WhatsApp'ta takip ediyor. Önceki yazılımcı projeyi %40 tamamlayıp ayrılmış. Firma sizden bu projeyi tamamlamanızı istiyor.
 
 ### Mevcut Durum
-- ✅ Temel klasör yapısı var
-- ✅ Customer ve Order modelleri (kısmen)
-- ✅ Basit API endpoint'leri (GET, POST)
-- ❌ Konfigürasyon eksik
-- ❌ Migration-Model uyumsuzluğu
-- ❌ Validation yok
-- ❌ Test coverage düşük
-- ❌ Loglama dağınık
-- ❌ ETL scripti yok
-- ❌ Dokümantasyon eksik
+- Temel klasör yapısı var
+- Customer ve Order modelleri (kısmen)
+- Basit API endpoint'leri (GET, POST)
+- Konfigürasyon eksik
+- Migration-Model uyumsuzluğu
+- Validation yok
+- Test coverage düşük
+- Loglama dağınık
+- ETL scripti yok
+- Dokümantasyon eksik
 
 ---
 
-## 🎯 PROJE GEREKSİNİMLERİ (10 ANA BAŞLIK)
+## PROJE GEREKSİNİMLERİ (10 ANA BAŞLIK)
 
-1. ✅ **Gereksinim Analizi** - Müşteri taleplerine göre dokümantasyon
-2. ✅ **Mimari Tasarım** - DB şeması, UML, API listesi
-3. ✅ **Konfigürasyon** - .env, ortam ayrımı
-4. ✅ **Kod Geliştirme** - Eksik API'ler, standartlaştırma
-5. ✅ **Test Süreci** - Birim/entegrasyon testleri, CI/CD
-6. ✅ **Loglama** - Request/response, trace ID
-7. ✅ **Migration** - Şema düzeltmeleri, versiyonlama
-8. ✅ **ETL (Veri Geçişi)** - Excel'den müşteri aktarımı
-9. ✅ **Dokümantasyon** - API, kurulum, kullanıcı kılavuzu
-10. ✅ **Final Teslimat** - Tüm çıktıların hazırlanması
+1. **Gereksinim Analizi** - Müşteri taleplerine göre dokümantasyon
+2. **Mimari Tasarım** - DB şeması, UML, API listesi
+3. **Konfigürasyon** - .env, ortam ayrımı
+4. **Kod Geliştirme** - Eksik API'ler, standartlaştırma
+5. **Test Süreci** - Birim/entegrasyon testleri, CI/CD
+6. **Loglama** - Request/response, trace ID
+7. **Migration** - Şema düzeltmeleri, versiyonlama
+8. **ETL (Veri Geçişi)** - Excel'den müşteri aktarımı
+9. **Dokümantasyon** - API, kurulum, kullanıcı kılavuzu
+10. **Final Teslimat** - Tüm çıktıların hazırlanması
 
 ---
 
-## 🗂️ AŞAMALAR (KÜÇÜk ADIMLARLA)
+## AŞAMALAR (KÜÇÜK ADIMLARLA)
 
 Her aşama bağımsız test edilebilir küçük adımlara bölünmüştür. Hata durumunda hangi adımda sorun olduğunu anında tespit edebilirsiniz.
 
 ---
 
-## 🎯 AŞAMA 1: ORTAM HAZIRLIĞI ve İLK KURULUM
+## AŞAMA 1: ORTAM HAZIRLIĞI ve İLK KURULUM
 
 ### 📌 Adım 1.1: Sistem Gereksinimlerini Kontrol Et
 
